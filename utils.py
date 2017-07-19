@@ -1,5 +1,5 @@
-from keras.utils.np_utils import to_categorical
 import numpy as np
+import re
 
 
 class Token2IDTransformer:
@@ -33,6 +33,7 @@ in case string -> individual chars are assumed to be tokens
         except TypeError:
             rez = self.t2i_map_f(text)
         if one_hot:
+            from keras.utils.np_utils import to_categorical
             rez = to_categorical(rez)
         return rez
 
