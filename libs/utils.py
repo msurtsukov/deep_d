@@ -7,6 +7,7 @@ import numpy as np
 import tensorflow as tf
 from libs.model import Model
 
+
 symbs = re.compile('[\nа-я:\-\",\.!? ]')
 
 
@@ -303,7 +304,7 @@ return_full_tree - вернуть деревья последовательно�
 
 
 def predict_f_for_stateful_rnn(rnn, batch_shape, seed, temperature=1.0):
-    x = np.zeros((batch_shape))
+    x = np.zeros((batch_shape,))
     assert isinstance(seed, (list, tuple))
     preds_array = []
     for batch_begin in range(0, len(seed), batch_shape[0]):

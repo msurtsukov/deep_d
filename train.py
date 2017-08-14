@@ -14,7 +14,7 @@ def main():
                         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('--data_dir', type=str, default='data/dostoewskij',
                         help='data directory containing input.txt')
-    parser.add_argument('--save_dir', type=str, default='save/shm_c2',
+    parser.add_argument('--save_dir', type=str, default='save/shm_c1',
                         help='directory to store checkpointed models')
     parser.add_argument('--log_dir', type=str, default='logs',
                         help='directory to store tensorboard logs')
@@ -38,17 +38,17 @@ def main():
                         help='save frequency')
     parser.add_argument('--grad_clip', type=float, default=5.,
                         help='clip gradients at this value')
-    parser.add_argument('--learning_rate', type=float, default=0.0002,
+    parser.add_argument('--learning_rate', type=float, default=0.004,
                         help='learning rate')
     parser.add_argument('--decay_rate', type=float, default=0.9,
                         help='decay rate for rmsprop')
-    parser.add_argument('--decay_every', type=int, default=2000,
+    parser.add_argument('--decay_every', type=int, default=1000,
                         help='decay every n-th batch (0 for decay between epochs)')
     parser.add_argument('--output_keep_prob', type=float, default=1.0,
                         help='probability of keeping weights in the hidden layer')
     parser.add_argument('--input_keep_prob', type=float, default=1.0,
                         help='probability of keeping weights in the input layer')
-    parser.add_argument('--init_from', type=str, default='save/shm_c1',
+    parser.add_argument('--init_from', type=str, default=None,
                         help="""continue training from saved model at this path.
 Path must contain files saved by previous training process:
 'config.pkl'        : configuration;
