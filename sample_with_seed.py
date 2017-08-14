@@ -1,5 +1,5 @@
 import tensorflow as tf
-from libs.utils import load_model, check_sent, filter_sequence
+from libs.utils import load_model, load_transformer, check_sent, filter_sequence
 from collections import defaultdict
 import json
 
@@ -20,8 +20,8 @@ for i in range(len(sentences)//batch_size):
     batches.append(batch)
 
 sess = tf.Session()
-model, transformer = load_model(model_path, sess, training=False, decoding=False,
-                                seq_length=64, batch_size=batch_size)
+model = load_model(model_path, sess, training=False, decoding=False, seq_length=64, batch_size=batch_size)
+transformer = load_transformer(model_path)
 
 states = []
 print('calculating states')
@@ -35,8 +35,8 @@ with open('./data/words_dictionary.txt', 'r', encoding='utf-8') as f:
 g = tf.Graph()
 with g.as_default():
     sess_sample = tf.Session()
-    model_sample, _ = load_model(model_path, sess_sample, training=False, decoding=True,
-                                 seq_length=201, batch_size=batch_size)
+    model_sample = load_model(model_path, sess_sample, training=False, decoding=True,
+                              seq_length=201, batch_size=batch_size)
 
 print('sampling')
 sampled_by_seed = defaultdict(list)

@@ -256,4 +256,3 @@ class Model:
                 new_ret.append(r + c)
             ret = new_ret
         return ret
-

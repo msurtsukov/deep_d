@@ -4,7 +4,7 @@ import tensorflow as tf
 import argparse
 import os
 from six.moves import cPickle
-from libs.utils import load_model
+from libs.utils import load_model, load_transformer
 
 from six import text_type
 
@@ -31,10 +31,10 @@ def main():
     sample(args)
 
 
-# todo change (chars, vocab) -> transformer
 def sample(args):
     with tf.Session() as sess:
-        model, transformer = load_model(args.save_dir, sess, training=False)
+        model = load_model(args.save_dir, sess, training=False)
+        transformer = load_transformer(args.save_dir)
         chars = transformer.tokens
         vocab = transformer.vocab
         for i in range(args.n_samples):

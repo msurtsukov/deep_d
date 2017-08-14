@@ -108,11 +108,15 @@ class TextLoader:
         self.pointer = 0
 
 
+def load_transformer(load_dir):
+    with open(os.path.join(load_dir, 'transformer.pkl'), 'rb') as f:
+        transformer = cPickle.load(f)
+    return transformer
+
+
 def load_model(save_dir, sess, training=False, decoding=False, **kwargs):
     with open(os.path.join(save_dir, 'config.pkl'), 'rb') as f:
         saved_args = cPickle.load(f)
-    with open(os.path.join(save_dir, 'transformer.pkl'), 'rb') as f:
-        transformer = cPickle.load(f)
 
     saved_args.__dict__.update(kwargs)
 
@@ -123,7 +127,28 @@ def load_model(save_dir, sess, training=False, decoding=False, **kwargs):
         ckpt = tf.train.get_checkpoint_state(save_dir)
         if ckpt and ckpt.model_checkpoint_path:
             saver.restore(sess, ckpt.model_checkpoint_path)
-    return model, transformer
+    return model
+
+
+def load_dis(load_dir, dis_type):
+    assert dis_type in ("believability", "style")
+
+    from keras.models import load_model as load_m
+
+    path = load_dir + 'discriminator_' + dis_type + '_rnn_model.h5'
+    try:
+        f = open(path)
+        f.close()
+    except Exception:
+        raise Exception('No file ' + path)
+    return load_m(path)
+
+
+def load_dictionary(load_dir):
+    path = load_dir + 'words_dictionary.txt'
+    with open(path, 'r') as f:
+        dictionary = f.read().split('_')
+    return dictionary
 
 
 class Token2IDTransformer:
@@ -195,6 +220,48 @@ in case string -> individual chars are assumed to be tokens
             return self.transform(tokens_array, *args, **kwargs)
 
 
+def top_best(list_of_pp_tuples, topn):
+    if isinstance(topn, float):
+        topn = max(min(1., topn), 0.)
+        topn = int(len(list_of_pp_tuples) * topn)
+
+    sorted_out = sorted(list_of_pp_tuples, key=lambda x: x[1])[:topn]
+    return sorted_out
+
+
+# def top_best(phrases_list, probs, topn=20):
+#     if isinstance(topn, float):
+#         topn = max(min(1., topn), 0.)
+#         topn = int(len(phrases_list) * topn)
+#
+#     probs = probs.copy()
+#     res = []
+#     if len(probs) > len(phrases_list):
+#         raise Exception('len(probs) > len(phrases_list)')
+#     for i in range(min(len(probs), abs(topn))):
+#         if topn > 0:
+#             pos = np.argmax(probs)
+#         else:
+#             pos = np.argmin(probs)
+#         res.append((phrases_list[pos], probs[pos]))
+#         if topn > 0:
+#             probs[pos] = 0
+#         else:
+#             probs[pos] = 1
+#     return res
+
+
+def pad(array, to_len, with_what):
+    res = 0
+    if len(array) > to_len:
+        res = array[:to_len]
+    elif len(array) < to_len:
+        res = [with_what] * (to_len - len(array)) + list(array)
+    else:
+        res = array
+    return np.array(res)
+
+
 import re
 pat = re.compile(r'([a-я:, "]+[?!.]+)')
 w_pat = re.compile(r'[а-я]+')
@@ -220,7 +287,7 @@ def filter_sequence(seq, dictionary):
 
 
 def split_data_into_correct_batches_for_stateful_rnn(array, batch_size, max_len):
-    '''Array is a numpy array of indices, first dim is sequence dim, others may or may not present;
+    """Array is a numpy array of indices, first dim is sequence dim, others may or may not present;
 
 For input:
 - array = np.array([0, 1, 2, 3, ..., 99]),
@@ -244,7 +311,7 @@ array([[ 0,  1,  2,  3,  4,  5,  6,  7],
        [91, 92, 93, 94, 95, 96, 97, 98]])
 
 Such packing where beginning of new batch is the continuation of previous is needed for correct
-training of stateful rnn'''
+training of stateful rnn"""
 
     step = array.shape[0] // batch_size
     seqs_num = (step - 1) // max_len  # make sure there is always an y ahead
@@ -260,7 +327,7 @@ training of stateful rnn'''
 
 
 def beam_search(predict_f, seed, top_k, seq_len=1, temp_seq=1.0, return_full_tree=False):
-    '''
+    """
 predict_f([seed]) - функция сэмплинга следующего токена (на входе массив последовательностей,
                                                                       на выходе массив вероятностей)
 seed - последовательность предыдущих токенов
@@ -268,7 +335,7 @@ top_k - сколько токенов с наибольшей вероятнос
 seq_len - длина последовательности, которую сэмплить
 temp_seq - температура софтмакса конечных последовательностей
 return_full_tree - вернуть деревья последовательностей и их вероятностей целиком
-    '''
+    """
     assert top_k ** seq_len < 10000, 'complexity is O(top_k ** seq_len)'
 
     s = list(seed.shape)  # without batch_size

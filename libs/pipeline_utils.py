@@ -1,5 +1,19 @@
 import numpy as np
-from libs.utils import filter_sequence
+import tensorflow as tf
+from libs.utils import load_model, filter_sequence, pad, top_best
+
+
+def build_sampler_env(load_dir, batch_size=64, enc_seq_len=64, dec_seq_len=201):
+    enc_g = tf.Graph()
+    with enc_g.as_default():
+        enc_sess = tf.Session()
+        enc_model = load_model(load_dir, enc_sess, False, decoding=False, seq_length=enc_seq_len, batch_size=batch_size)
+
+    dec_g = tf.Graph()
+    with dec_g.as_default():
+        dec_sess = tf.Session()
+        dec_model = load_model(load_dir, dec_sess, False, decoding=True, seq_length=dec_seq_len, batch_size=batch_size)
+    return enc_model, enc_sess, enc_g, dec_model, dec_sess, dec_g
 
 
 def sample(enc_model, enc_session, enc_graph, dec_model, dec_session, dec_graph,
@@ -18,3 +32,35 @@ def sample(enc_model, enc_session, enc_graph, dec_model, dec_session, dec_graph,
                 break
         sampled = sampled[:n_items]
     return sampled
+
+
+def wrap_list_with_score(phrases_list, value=1.):
+    return [tuple((p, value)) for p in phrases_list]
+
+
+def probability(phrases_list, model, transformer):
+    """Returns probability of each phrase under given discriminator"""
+
+    pad_idx = len(transformer.tokens)  # pad with new element
+    X = np.array(
+            [pad(transformer.transform(p), to_len=200, with_what=pad_idx) for p in phrases_list]
+        )
+
+    preds = model.predict(X)
+    return preds[:, 0]
+
+
+def update_probability(list_of_pp_tuples, probability_f):
+    phrases, probs = list(zip(*list_of_pp_tuples))  # zip(*...) is inverse to zip(...)
+    conditional_probs = probability_f(phrases)
+    out_list_of_pp_tuples = list(zip(phrases, np.multiply(probs, conditional_probs)))
+    return out_list_of_pp_tuples
+
+
+def simple_probability_pipeline(sample_f, dis_fs, topn=1.):
+    sampled = sample_f()
+    pp_list = wrap_list_with_score(sampled)
+    for d_f in dis_fs:
+        pp_list = update_probability(pp_list, d_f)  # apply next discrim
+        pp_list = top_best(pp_list, topn)  # select top n probable
+    return pp_list
