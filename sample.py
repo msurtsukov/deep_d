@@ -16,10 +16,10 @@ def main():
                         help='model directory to store checkpointed models')
     parser.add_argument('-n', type=int, default=500,
                         help='number of characters to sample')
-    parser.add_argument('--prime', type=text_type, default="а также поставками из Российской Федерации, проходящих \
-по линиям, которые исключены из перечня межгосударственных, перетоки по ним не ведутся в общем сальдо \
-Украина-Россия-Беларусь, - написал Ковальчук в своем фейсбуке. \nПоставки на неконтролируемые Киевом территории \
-Луганской области были приостановлены в ночь на 25 апреля из-за больших долгов.\n",
+    parser.add_argument('--prime', type=text_type, default="а также поставками из российской федерации, проходящих \
+по линиям, которые исключены из перечня межгосударственных, перетоки по ним не ведутся, написал ковальчук в своем \
+фейсбуке. \nпоставки на неконтролируемые киевом территории \
+луганской области были приостановлены в ночь на двадцать пятое апреля из-за больших долгов.\n",
                         help='prime text')
     parser.add_argument('--sample', type=int, default=1,
                         help='0 to use max at each timestep, 1 to sample at '
@@ -30,10 +30,13 @@ def main():
     args = parser.parse_args()
     sample(args)
 
+
 # todo change (chars, vocab) -> transformer
 def sample(args):
     with tf.Session() as sess:
-        model, chars, vocab = load_model(args.save_dir, sess, training=False)
+        model, transformer = load_model(args.save_dir, sess, training=False)
+        chars = transformer.tokens
+        vocab = transformer.vocab
         for i in range(args.n_samples):
             print('sample ', i)
             print(model.sample(sess, chars, vocab, args.n, args.prime, args.sample)) # .encode('utf-8'))

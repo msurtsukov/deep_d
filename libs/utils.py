@@ -259,9 +259,8 @@ training of stateful rnn'''
     return X, y
 
 
-def deep_sample_seq(predict_f, seed, top_k, seq_len=1, temp_seq=1.0, return_full_tree=False):
-    ''' Не помню как правильно называется, на семинарах рассказывали, когда сэмплишь не по одному
-токену, а сразу последовательность. Основываясь на условной зависимости следующего токена от предыдущего.
+def beam_search(predict_f, seed, top_k, seq_len=1, temp_seq=1.0, return_full_tree=False):
+    '''
 predict_f([seed]) - функция сэмплинга следующего токена (на входе массив последовательностей,
                                                                       на выходе массив вероятностей)
 seed - последовательность предыдущих токенов

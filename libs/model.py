@@ -19,6 +19,10 @@ class Model:
         self.grad_clip = args.grad_clip
         self.training = training
         self.decoding = decoding
+        if not self.training and not self.decoding:
+            self.seq_length = 1
+            self.batch_size = 1
+
         self._shm = False
 
         if self.model == 'rnn':
