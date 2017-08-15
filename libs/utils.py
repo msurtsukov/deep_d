@@ -114,6 +114,12 @@ def load_transformer(load_dir):
     return transformer
 
 
+def load_dictionary(load_dir):
+    with open(os.path.join(load_dir, 'words_dictionary.txt'), 'r') as f:
+        dictionary = f.read().split('_')
+    return dictionary
+
+
 def load_model(save_dir, sess, training=False, decoding=False, **kwargs):
     with open(os.path.join(save_dir, 'config.pkl'), 'rb') as f:
         saved_args = cPickle.load(f)
@@ -135,7 +141,7 @@ def load_dis(load_dir, dis_type):
 
     from keras.models import load_model as load_m
 
-    path = load_dir + 'discriminator_' + dis_type + '_rnn_model.h5'
+    path = os.path.join(load_dir, 'discriminator_' + dis_type + '_rnn_model.h5')
     try:
         f = open(path)
         f.close()
@@ -144,16 +150,18 @@ def load_dis(load_dir, dis_type):
     return load_m(path)
 
 
-def load_dictionary(load_dir):
-    path = load_dir + 'words_dictionary.txt'
-    with open(path, 'r') as f:
-        dictionary = f.read().split('_')
-    return dictionary
+def top_best(list_of_pp_tuples, topn):
+    if isinstance(topn, float):
+        topn = max(min(1., topn), 0.)
+        topn = int(len(list_of_pp_tuples) * topn)
+
+    sorted_out = sorted(list_of_pp_tuples, key=lambda x: x[1])[:topn]
+    return sorted_out
 
 
 class Token2IDTransformer:
     """
-    Class incapsulating token and id mutual mapping
+    Class encapsulating token and id mutual mapping
     """
     def __init__(self, as_string=True):
         self.as_string = as_string
@@ -168,8 +176,8 @@ class Token2IDTransformer:
 
     def fit(self, tokens_array):
         """
-tokens_array should be an array of tokens or a string
-in case string -> individual chars are assumed to be tokens
+        tokens_array should be an array of tokens or a string
+        in case string -> individual chars are assumed to be tokens
         """
         if isinstance(tokens_array, str):
             tokens_array = list(tokens_array)
@@ -218,15 +226,6 @@ in case string -> individual chars are assumed to be tokens
     def fit_transform(self, tokens_array, *args, **kwargs):
             self.fit(tokens_array)
             return self.transform(tokens_array, *args, **kwargs)
-
-
-def top_best(list_of_pp_tuples, topn):
-    if isinstance(topn, float):
-        topn = max(min(1., topn), 0.)
-        topn = int(len(list_of_pp_tuples) * topn)
-
-    sorted_out = sorted(list_of_pp_tuples, key=lambda x: x[1])[:topn]
-    return sorted_out
 
 
 # def top_best(phrases_list, probs, topn=20):

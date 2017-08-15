@@ -14,7 +14,7 @@ def main():
                         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('--data_dir', type=str, default='data/dostoewskij',
                         help='data directory containing input.txt')
-    parser.add_argument('--save_dir', type=str, default='save/shm_c1',
+    parser.add_argument('--save_dir', type=str, default='models/shm_c1',
                         help='directory to store checkpointed models')
     parser.add_argument('--log_dir', type=str, default='logs',
                         help='directory to store tensorboard logs')

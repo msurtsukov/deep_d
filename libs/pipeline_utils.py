@@ -19,6 +19,7 @@ def build_sampler_env(load_dir, batch_size=64, enc_seq_len=64, dec_seq_len=201):
 def sample(enc_model, enc_session, enc_graph, dec_model, dec_session, dec_graph,
            dictionary, transformer, seed_phrase, n_items,
            batch_size=64, max_iter=1000):
+    """Samples n_items phrases which pass filter_sequence"""
     with enc_graph.as_default():
         states = enc_model.calculate_states(enc_session, transformer, phrases=[seed_phrase])
     batch_states = [np.vstack([state]*batch_size) for state in states]
@@ -35,6 +36,7 @@ def sample(enc_model, enc_session, enc_graph, dec_model, dec_session, dec_graph,
 
 
 def wrap_list_with_score(phrases_list, value=1.):
+    """For now is only needed to give each sampled phrase basic probability of 1"""
     return [tuple((p, value)) for p in phrases_list]
 
 

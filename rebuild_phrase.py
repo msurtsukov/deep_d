@@ -12,7 +12,7 @@ from six import text_type
 def main():
     parser = argparse.ArgumentParser(
                        formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument('--save_dir', type=str, default='save/shm_c1',
+    parser.add_argument('--save_dir', type=str, default='models/shm_c1',
                         help='model directory to store checkpointed models')
     parser.add_argument('--stop_sym', type=str, default=' ',
                         help='symbol to sample until')

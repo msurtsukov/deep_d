@@ -6,7 +6,7 @@ import json
 
 file_name = './data/dostoewskij/input.txt'
 save_to = './data/dostoewskij/sampled.json'
-model_path = './save/shm_c1'
+model_path = './models/shm_c1'
 loops = 8
 
 with open(file_name, 'r', encoding='utf-8') as f:
