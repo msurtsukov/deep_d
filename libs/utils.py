@@ -8,7 +8,7 @@ import tensorflow as tf
 from libs.model import Model
 
 
-symbs = re.compile('[\nа-я:\-\",\.!? ]')
+symbs = re.compile(r'[^\nа-я:\-\",\.!? ]')
 
 
 def text_preprocess(text):
@@ -115,7 +115,7 @@ def load_transformer(load_dir):
 
 
 def load_dictionary(load_dir):
-    with open(os.path.join(load_dir, 'words_dictionary.txt'), 'r') as f:
+    with open(os.path.join(load_dir, 'words_dictionary.txt'), 'r', encoding="utf-8") as f:
         dictionary = f.read().split('_')
     return dictionary
 
@@ -155,7 +155,7 @@ def top_best(list_of_pp_tuples, topn):
         topn = max(min(1., topn), 0.)
         topn = int(len(list_of_pp_tuples) * topn)
 
-    sorted_out = sorted(list_of_pp_tuples, key=lambda x: x[1])[:topn]
+    sorted_out = sorted(list_of_pp_tuples, key=lambda x: x[1], reverse=True)[:topn]
     return sorted_out
 
 
@@ -226,28 +226,6 @@ class Token2IDTransformer:
     def fit_transform(self, tokens_array, *args, **kwargs):
             self.fit(tokens_array)
             return self.transform(tokens_array, *args, **kwargs)
-
-
-# def top_best(phrases_list, probs, topn=20):
-#     if isinstance(topn, float):
-#         topn = max(min(1., topn), 0.)
-#         topn = int(len(phrases_list) * topn)
-#
-#     probs = probs.copy()
-#     res = []
-#     if len(probs) > len(phrases_list):
-#         raise Exception('len(probs) > len(phrases_list)')
-#     for i in range(min(len(probs), abs(topn))):
-#         if topn > 0:
-#             pos = np.argmax(probs)
-#         else:
-#             pos = np.argmin(probs)
-#         res.append((phrases_list[pos], probs[pos]))
-#         if topn > 0:
-#             probs[pos] = 0
-#         else:
-#             probs[pos] = 1
-#     return res
 
 
 def pad(array, to_len, with_what):

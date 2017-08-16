@@ -59,10 +59,13 @@ def update_probability(list_of_pp_tuples, probability_f):
     return out_list_of_pp_tuples
 
 
-def simple_probability_pipeline(sample_f, dis_fs, topn=1.):
-    sampled = sample_f()
+def simple_probability_pipeline(seed_phrase, sample_f, dis_fs, topn=1., last_step_only=True):
+    sampled = sample_f(seed_phrase=seed_phrase)
     pp_list = wrap_list_with_score(sampled)
     for d_f in dis_fs:
         pp_list = update_probability(pp_list, d_f)  # apply next discrim
+        if not last_step_only:
+            pp_list = top_best(pp_list, topn)  # select top n probable
+    if last_step_only:
         pp_list = top_best(pp_list, topn)  # select top n probable
     return pp_list
