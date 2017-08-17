@@ -1,0 +1,8 @@
+.DS_Store
+data/
+logs/
+save/
+libs/__pycache__/
+models/
+.ipynb_checkpoints/
+.idea/

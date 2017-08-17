@@ -124,9 +124,12 @@ class Model:
         self.lr = tf.Variable(0.0, trainable=False)
         tvars = tf.trainable_variables()
         grads, _ = tf.clip_by_global_norm(tf.gradients(self.cost, tvars), self.grad_clip)
-        with tf.name_scope('optimizer'):
-            optimizer = tf.train.AdamOptimizer(self.lr)
-        self.train_op = optimizer.apply_gradients(zip(grads, tvars))
+        if self.training:
+            with tf.name_scope('optimizer'):
+                optimizer = tf.train.AdamOptimizer(self.lr)
+            self.train_op = optimizer.apply_gradients(zip(grads, tvars))
+        else:
+            self.train_op = None
 
         # instrument tensorboard
         tf.summary.histogram('logits', self.logits)

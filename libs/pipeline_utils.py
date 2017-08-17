@@ -6,8 +6,9 @@ from libs.utils import load_model, filter_sequence, pad, top_best
 def build_sampler_env(load_dir, batch_size=64, enc_seq_len=64, dec_seq_len=201):
     enc_g = tf.Graph()
     with enc_g.as_default():
-        enc_sess = tf.Session()
-        enc_model = load_model(load_dir, enc_sess, False, decoding=False, seq_length=enc_seq_len, batch_size=batch_size)
+        with tf.device("/cpu:0"):
+            enc_sess = tf.Session()
+            enc_model = load_model(load_dir, enc_sess, False, decoding=False, seq_length=enc_seq_len, batch_size=batch_size)
 
     dec_g = tf.Graph()
     with dec_g.as_default():
