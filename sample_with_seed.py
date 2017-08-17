@@ -7,7 +7,7 @@ import json
 file_name = './data/dostoewskij/input.txt'
 save_to = './data/dostoewskij/sampled.json'
 model_path = './models/shm_c1'
-loops = 8
+loops = 25
 
 with open(file_name, 'r', encoding='utf-8') as f:
     text = f.read()
@@ -20,7 +20,7 @@ for i in range(len(sentences)//batch_size):
     batches.append(batch)
 
 sess = tf.Session()
-model = load_model(model_path, sess, training=False, decoding=False, seq_length=64, batch_size=batch_size)
+model = load_model(model_path, sess, training=False, decoding=True, seq_length=64, batch_size=batch_size)
 transformer = load_transformer(model_path)
 
 states = []
