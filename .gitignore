@@ -7,3 +7,5 @@ models/
 .ipynb_checkpoints/
 .idea/
 libs/.DS_Store
+*.pyc
+*.pyc
