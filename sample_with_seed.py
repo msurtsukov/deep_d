@@ -4,9 +4,9 @@ from collections import defaultdict
 import json
 
 
-file_name = './data/dostoewskij/input.txt'
-save_to = './data/dostoewskij/sampled.json'
-model_path = './models/shm_c1'
+file_name = './data/checkov/input.txt'
+save_to = './data/checkov/checkov_sampled.json'
+model_path = './models/shm_c2'
 loops = 25
 
 with open(file_name, 'r', encoding='utf-8') as f:
@@ -48,6 +48,5 @@ for loop in range(loops):
             if check_sent(seed):
                 sampled_by_seed[seed] += filter_sequence(sample, dictionary=dictionary)
         print(i+1, '/', len(batches),  end='\r')
-
-with open(save_to, 'w', encoding='utf-8') as f:
-    json.dump(sampled_by_seed, f, ensure_ascii=False)
+    with open(save_to, 'w', encoding='utf-8') as f:
+        json.dump(sampled_by_seed, f, ensure_ascii=False)
