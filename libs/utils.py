@@ -6,17 +6,13 @@ import json
 import numpy as np
 import tensorflow as tf
 from libs.model import Model
-import libs.meaning_discrimination as me
-from collections import namedtuple
 
 
-symbs = re.compile(r"[^А-Яа-я:!\?,\.\"— - \n]")
+symbs = re.compile(r'[^\nа-я:\-\",\.!? ]')
 
 
 def text_preprocess(text):
-    text = re.sub("—", "-", text)
     text = re.sub(symbs, "", text)
-    text = text.lower()
     return text
 
 
@@ -141,12 +137,7 @@ def load_model(save_dir, sess, training=False, decoding=False, **kwargs):
 
 
 def load_dis(load_dir, dis_type):
-    assert dis_type in ("believability", "style", "meaning")
-
-    if dis_type == "meaning":
-        tokenizer, morph, w2v = me.load(load_dir)
-        Meaning = namedtuple("Meaning", "tokenizer morph w2v")
-        return Meaning(tokenizer, morph, w2v)
+    assert dis_type in ("believability", "style")
 
     from keras.models import load_model as load_m
 
@@ -270,40 +261,6 @@ def filter_sequence(seq, dictionary):
         if keep:
             selected.append(cand)
     return selected
-
-
-def split_data_into_correct_batches(text1_indexes, text2_indexes, n_batches,
-                                    max_len, make_equal_folding=True):
-    prime_number = 2147483647
-
-    X = np.zeros((n_batches, max_len), dtype=np.int64)
-    Y = np.zeros((n_batches,), dtype=np.int64)
-
-    choose_from_first = True
-    index1 = 0
-    index2 = 0
-    for i in range(n_batches):
-        if make_equal_folding:
-            if choose_from_first:
-                index1 = (index1 + prime_number) % (len(text1_indexes))
-                X[i, :] = text1_indexes[index1]
-                Y[i] = 0
-            else:
-                index2 = (index2 + prime_number) % (len(text2_indexes))
-                X[i, :] = text2_indexes[index2]
-                Y[i] = 1
-
-            choose_from_first = not choose_from_first
-        else:
-            index1 = (index1 + prime_number) % (len(text1_indexes) + len(text2_indexes))
-            if index1 < len(text1_indexes) - max_len + 1:
-                X[i, :] = text1_indexes[index1]
-                Y[i] = 0
-            else:
-                index2 = index1 - (len(text1_indexes))
-                X[i, :] = text2_indexes[index2]
-                Y[i] = 1
-    return X, Y
 
 
 def split_data_into_correct_batches_for_stateful_rnn(array, batch_size, max_len):

@@ -15,11 +15,8 @@ def merge_directory_into_raw_text(dir_name, fnout):
             text = fin.read()
             corpora1 += text
 
-    if isinstance(fnout, str):
-        with open(fnout, "w", encoding="utf-8") as f:
-            f.write(corpora1)
-    else:
-        fnout.write(corpora1)
+    with open(fnout, "w", encoding="utf-8") as f:
+        f.write(corpora1)
 
 
 # да простят мне боги все это месиво из регулярок - старался не разделять прямую речь на отдельные предложения, а также
