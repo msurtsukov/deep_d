@@ -1,7 +1,7 @@
 import numpy as np
 import tensorflow as tf
 from libs.utils import load_model, filter_sequence, pad, top_best
-
+from libs.meaning_discrimination import sentence_similarity
 
 def build_sampler_env(load_dir, batch_size=64, enc_seq_len=64, dec_seq_len=201):
     enc_g = tf.Graph()
@@ -51,6 +51,12 @@ def probability(phrases_list, model, transformer):
 
     preds = model.predict(X)
     return preds[:, 0]
+
+
+def meaning_probability(phrases_list, model, seed_phrase, coef="uniform"):
+    sim = sentence_similarity(seed_phrase, phrases_list, model.tokenizer, model.morph, model.w2v, coef=coef)
+    prob = (sim + 1.) / 2.
+    return prob
 
 
 def update_probability(list_of_pp_tuples, probability_f):

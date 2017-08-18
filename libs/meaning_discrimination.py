@@ -56,4 +56,11 @@ def load(w2v_dir):
 
 def sentence_similarity(sentence, candidates, tokenizer, morph, w2v_model, coef='tfidf'):
     vec = sentence_to_vec(sentence, tokenizer, morph, w2v_model, coef=coef)
-    return np.array([1 - cosine(vec, sentence_to_vec(c, tokenizer, morph, w2v_model)) for c in candidates])
+    distances = []
+    for c in candidates:
+        try:
+            dist = 1 - cosine(vec, sentence_to_vec(c, tokenizer, morph, w2v_model))
+        except ValueError:
+            dist = -1
+        distances.append(dist)
+    return np.array(distances)
