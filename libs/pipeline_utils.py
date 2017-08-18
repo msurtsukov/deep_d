@@ -19,7 +19,7 @@ def build_sampler_env(load_dir, batch_size=64, enc_seq_len=64, dec_seq_len=201):
 
 def sample(enc_model, enc_session, enc_graph, dec_model, dec_session, dec_graph,
            dictionary, transformer, seed_phrase, n_items,
-           batch_size=64, max_iter=1000):
+           batch_size=64, max_iter=1000, softmax_t=1.0):
     """Samples n_items phrases which pass filter_sequence"""
     with enc_graph.as_default():
         states = enc_model.calculate_states(enc_session, transformer, phrases=[seed_phrase])
@@ -27,7 +27,7 @@ def sample(enc_model, enc_session, enc_graph, dec_model, dec_session, dec_graph,
     sampled = []
     with dec_graph.as_default():
         for i in range(max_iter):
-            sequences = dec_model.loop_sample(dec_session, transformer, batch_states)
+            sequences = dec_model.loop_sample(dec_session, transformer, batch_states, softmax_t=softmax_t)
             for seq in sequences:
                 sampled += filter_sequence(seq, dictionary=dictionary)
             if len(sampled) >= n_items:

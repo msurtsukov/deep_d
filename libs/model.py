@@ -23,6 +23,8 @@ class Model:
             self.seq_length = 1
             self.batch_size = 1
 
+        self.softmax_t = tf.placeholder_with_default(tf.constant(1., tf.float32), ())
+
         self._shm = False
 
         if self.model == 'rnn':
@@ -87,9 +89,16 @@ class Model:
 
         if self._shm:
             def loop_shm(prev, _, model):
-                prev = tf.matmul(prev, softmax_w) + softmax_b
+                log_prev = tf.matmul(prev, softmax_w) + softmax_b
                 # prev_symbol = tf.stop_gradient(tf.argmax(prev, 1))
-                prev_symbol = tf.stop_gradient(tf.squeeze(tf.multinomial(prev, 1)))
+
+                # softmax temperature
+                log_prev = log_prev / model.softmax_t
+                prev_t = tf.exp(log_prev)
+                prev = prev_t / tf.reduce_sum(prev_t, axis=1, keep_dims=True)
+                log_prev = tf.log(prev)
+                # sample
+                prev_symbol = tf.stop_gradient(tf.squeeze(tf.multinomial(log_prev, 1)))
                 inp = [tf.nn.embedding_lookup(embedding, prev_symbol)]
                 for b_s in self.boundary_symbols:
                     z = tf.expand_dims(tf.to_float(tf.equal(prev_symbol, b_s)), axis=-1)
@@ -178,12 +187,12 @@ class Model:
         [state] = sess.run([self.final_state], feed)
         return state
 
-    def loop_sample(self, sess, transformer, state):
+    def loop_sample(self, sess, transformer, state, softmax_t=1.):
         assert self.decoding
         assert len(state) == self.num_layers * 3
         x = np.zeros((self.batch_size, self.seq_length), dtype=np.int32)
 
-        feed = {self.input_data: x}
+        feed = {self.input_data: x, self.softmax_t: softmax_t}
         if self._shm:
             bx = np.zeros((self.batch_size, self.seq_length), dtype=np.float32)
             for sym_code, placeholder in zip(self.boundary_symbols, self.boundary_data):
