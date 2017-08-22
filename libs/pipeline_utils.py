@@ -59,20 +59,67 @@ def meaning_probability(phrases_list, model, seed_phrase, coef="uniform"):
     return prob
 
 
-def update_probability(list_of_pp_tuples, probability_f):
-    phrases, probs = list(zip(*list_of_pp_tuples))  # zip(*...) is inverse to zip(...)
-    conditional_probs = probability_f(phrases)
-    out_list_of_pp_tuples = list(zip(phrases, np.multiply(probs, conditional_probs)))
+def update_probability(list_of_pp_tuples, probability_f, mode='prob', coef=1.0):
+    phrases, probs = list(zip(*list_of_pp_tuples))  # zip(*...) is inverse of zip(...)
+    conditional_probs = coef*probability_f(phrases)
+    if mode == 'sum':
+        out_list_of_pp_tuples = list(zip(phrases, np.add(probs, conditional_probs)))
+    else:
+        out_list_of_pp_tuples = list(zip(phrases, np.multiply(probs, conditional_probs)))
     return out_list_of_pp_tuples
+
+
+def weighted_probabilities_sum(list_of_lists_of_pp_tuples, coefs='uniform'):
+    if type(coefs) == str:
+        if coefs == 'uniform':
+            coefs = np.array([1.] * len(list_of_lists_of_pp_tuples), dtype='float32')
+            coefs /= sum(coefs)
+        else:
+            raise Exception('coefs must be "uniform" or an array of numbers')
+    coefs = np.array(coefs, dtype='float32')
+    if sum(coefs) < 1e-7:
+        raise Exception('sum(coefs) must be not zero')
+    coefs /= sum(coefs)
+    if len(coefs.shape) != 1:
+        raise Exception('coefs must be a 1-dimensional float array')
+    if len(coefs) != len(list_of_lists_of_pp_tuples):
+        raise Exception('length of coefs must be equal to the length of list_of_lists_of_pp_tuples')
+    if len(list_of_lists_of_pp_tuples) == 0:
+        raise Exception('length of list_of_lists_of_pp_tuples must be more than 0')
+    probs = []
+    for list_of_pp_tuples in list_of_lists_of_pp_tuples:
+        phrases, cur_probs = list(zip(*list_of_pp_tuples))
+        probs.append(cur_probs)
+    probs = np.array(probs, dtype='float32')
+    probs = np.dot(coefs, probs)
+    return list(zip(phrases, probs))
 
 
 def simple_probability_pipeline(seed_phrase, sample_f, dis_fs, topn=1., last_step_only=True):
     sampled = sample_f(seed_phrase=seed_phrase)
     pp_list = wrap_list_with_score(sampled)
     for d_f in dis_fs:
-        pp_list = update_probability(pp_list, d_f)  # apply next discrim
+        pp_list = update_probability(pp_list, d_f)  # apply next discriminator
         if not last_step_only:
             pp_list = top_best(pp_list, topn)  # select top n probable
     if last_step_only:
         pp_list = top_best(pp_list, topn)  # select top n probable
+    return pp_list
+
+
+def simple_mean_probability_pipeline(seed_phrase, sample_f, dis_fs, topn=0.002, coefs='uniform'):
+    if type(coefs) == str:
+        if coefs == 'uniform':
+            coefs = np.array([1.] * len(dis_fs), dtype='float32')
+        else:
+            raise Exception('coefs must be "uniform" or an array of numbers')
+    coefs = np.array(coefs, dtype='float32')
+    coefs /= sum(coefs)
+
+    sampled = sample_f(seed_phrase=seed_phrase)
+    pp_list = wrap_list_with_score(sampled)
+    for c, d_f in zip(coefs, dis_fs):
+        pp_list = update_probability(pp_list, d_f, mode='sum', coef=c)  # apply next discriminator
+
+    pp_list = top_best(pp_list, topn)  # select top n probable
     return pp_list

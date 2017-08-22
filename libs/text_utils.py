@@ -89,8 +89,9 @@ def _morph_line(line, normalize=True, tag=True, ner=True):
             words = [wparsed.normal_form for wparsed in parsed]
         if tag:
             tags = [wparsed.tag.cyr_repr for wparsed in parsed]
-
-        line = '_'.join(words) + ';' + '_'.join(tags)
+            line = '_'.join(words) + ';' + '_'.join(tags)
+        else:
+            line = '_'.join(words)
     else:
         line = '_'.join(words)
     return line
@@ -118,17 +119,20 @@ def _proc_line(line, normalize=True, tag=True, ner=True):
     return line
 
 
+def _worker(line_t, normalize, tag, ner):
+    return _proc_line(line_t, normalize, tag, ner)
+
+
 def preprocess_sentences(fnin, fnout, normalize=False, tag=False, ner=False, workers=8):
     """Умеет нормализовать, сохранять тэги и находить именованные сущности"""
-
-    def worker(line_t):
-        return _proc_line(line_t, normalize, tag, ner)
 
     from multiprocessing import Pool
     p = Pool(workers)
 
     with open(fnin, encoding="utf-8") as fin:
         lines = fin.readlines()
+    from functools import partial
+    worker = partial(_worker, normalize=normalize, tag=tag, ner=ner)
 
     with open(fnout, "w", encoding="utf-8") as fout:
         l = len(lines)

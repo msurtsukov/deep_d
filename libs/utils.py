@@ -121,6 +121,7 @@ def load_transformer(load_dir):
 def load_dictionary(load_dir):
     with open(os.path.join(load_dir, 'words_dictionary.txt'), 'r', encoding="utf-8") as f:
         dictionary = f.read().split('_')
+    dictionary = dict(zip(dictionary, [1] * len(dictionary)))
     return dictionary
 
 
@@ -265,7 +266,7 @@ def filter_sequence(seq, dictionary):
         words = w_pat.findall(cand)
         keep = True
         for word in words:
-            if word not in dictionary:
+            if not dictionary.get(word, 0):
                 keep = False
         if keep:
             selected.append(cand)

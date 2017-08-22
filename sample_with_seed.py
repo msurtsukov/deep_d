@@ -4,9 +4,9 @@ from collections import defaultdict
 import json
 
 
-file_name = './data/checkov/input.txt'
-save_to = './data/checkov/checkov_sampled.json'
-model_path = './models/shm_c2'
+file_name = './data/merged_prepared.txt'
+save_to = './data/merged_sampled.json'
+model_path = './models/shm_c3'
 loops = 25
 
 with open(file_name, 'r', encoding='utf-8') as f:
