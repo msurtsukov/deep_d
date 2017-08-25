@@ -1,1 +1,1 @@
-{"n": 10000, "batch_size": 1024, "softmax_t": 0.6, "coefs": [1.0, 3.0, 0.5], "mode": "mean"}
+{"n": 10000, "batch_size": 1024, "softmax_t": 0.8, "coefs": [10.0, 3.0, 0.5], "mode": "prod"}

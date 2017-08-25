@@ -141,7 +141,7 @@ def load_model(save_dir, sess, training=False, decoding=False, **kwargs):
     return model
 
 
-def load_dis(load_dir, dis_type):
+def load_dis(load_dir, dis_type, file_name=None):
     assert dis_type in ("believability", "style", "meaning")
 
     if dis_type == "meaning":
@@ -150,8 +150,9 @@ def load_dis(load_dir, dis_type):
         return Meaning(tokenizer, morph, w2v)
 
     from keras.models import load_model as load_m
-
-    path = os.path.join(load_dir, 'discriminator_' + dis_type + '_rnn_model.h5')
+    if not file_name:
+        file_name = 'discriminator_' + dis_type + '_cnn_model.h5'
+    path = os.path.join(load_dir, file_name)
     try:
         f = open(path)
         f.close()
@@ -160,10 +161,13 @@ def load_dis(load_dir, dis_type):
     return load_m(path)
 
 
-def top_best(list_of_pp_tuples, topn):
+def top_best(list_of_pp_tuples, topn, remove_duplicates=True):
     if isinstance(topn, float):
         topn = max(min(1., topn), 0.)
         topn = int(len(list_of_pp_tuples) * topn)
+
+    if remove_duplicates:
+        list_of_pp_tuples = list(set(list_of_pp_tuples))
 
     sorted_out = sorted(list_of_pp_tuples, key=lambda x: x[1], reverse=True)[:topn]
     return sorted_out
