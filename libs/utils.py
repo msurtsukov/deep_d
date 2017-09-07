@@ -177,7 +177,7 @@ class Token2IDTransformer:
     """
     Class encapsulating token and id mutual mapping
     """
-    def __init__(self, as_string=True):
+    def __init__(self, as_string=True, default_token=None):
         self.as_string = as_string
 
         self.tokens = None
@@ -186,7 +186,7 @@ class Token2IDTransformer:
         self.token_idx = None
         self.idx_token = None
         self.default_id = None
-        self.default_token = None
+        self.default_token = default_token
 
     def fit(self, tokens_array):
         """
@@ -201,14 +201,23 @@ class Token2IDTransformer:
         self.set_vocab(sorted(list(set(tokens_array))))
         return self
 
-    def set_vocab(self, vocab, default_token=None):
-        self.tokens = list(vocab.keys())
-        self.vocab = vocab
-        self.default_token = default_token
-        self.default_id = self.vocab[default_token] if default_token else None
+    def set_vocab(self, tokens):
+        assert isinstance(tokens, list)
+        self.tokens = tokens
+        self.vocab = dict((t, i) for i, t in enumerate(sorted(list(set(tokens)))))
+        if self.default_token:
+            if self.default_token in self.vocab.keys():
+                self.default_id = self.vocab[self.default_token]
+            else:
+                self.default_id = len(self.vocab)
+                self.tokens.append(self.default_token)
+                self.vocab[self.default_token] = self.default_id
+        else:
+            self.default_id = None
+        self.default_id = self.vocab[self.default_token] if self.default_token else None
         self.vocab_size = len(self.vocab)
-        self.token_idx = vocab
-        self.idx_token = dict((t, i) for i, t in vocab.items())
+        self.token_idx = self.vocab
+        self.idx_token = dict((t, i) for i, t in self.vocab.items())
 
     def t2i_map_f(self, t):
         return self.token_idx.get(t, self.default_id)
@@ -231,15 +240,13 @@ class Token2IDTransformer:
             idxs = np.argmax(idxs, axis=-1)
         try:
             rez = list(map(self.i2t_map_f, idxs))
-            if self.as_string:
-                rez = ''.join(rez)
         except TypeError:
             rez = self.i2t_map_f(idxs)
         return rez
 
     def fit_transform(self, tokens_array, *args, **kwargs):
-            self.fit(tokens_array)
-            return self.transform(tokens_array, *args, **kwargs)
+        self.fit(tokens_array)
+        return self.transform(tokens_array, *args, **kwargs)
 
 
 def pad(array, to_len, with_what):
