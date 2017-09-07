@@ -267,11 +267,12 @@ def filter_sequence(seq, dictionary):
     selected = []
     for cand in candidates:
         cand = cand.strip()
-        words = w_pat.findall(cand)
         keep = True
-        for word in words:
-            if not dictionary.get(word, 0):
-                keep = False
+        if dictionary:
+            words = w_pat.findall(cand)
+            for word in words:
+                if not dictionary.get(word, 0):
+                    keep = False
         if keep:
             selected.append(cand)
     return selected
