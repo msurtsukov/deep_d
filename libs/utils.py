@@ -112,8 +112,12 @@ class TextLoader:
         self.pointer = 0
 
 
-def load_transformer(load_dir):
-    with open(os.path.join(load_dir, 'transformer.pkl'), 'rb') as f:
+def load_transformer(load_dir, file_name=None):
+    if not file_name:
+        file_name = os.path.join(load_dir, 'transformer.pkl')
+    else:
+        file_name = os.path.join(load_dir, file_name)
+    with open(file_name, 'rb') as f:
         transformer = cPickle.load(f)
     return transformer
 

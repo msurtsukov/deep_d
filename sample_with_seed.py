@@ -3,7 +3,6 @@ from libs.utils import load_model, load_transformer, check_sent, filter_sequence
 from collections import defaultdict
 import json
 
-
 file_name = './data/merged_prepared.txt'
 save_to = './data/merged_sampled.json'
 model_path = './models/shm_c3'
@@ -29,8 +28,9 @@ for i, batch in enumerate(batches):
     states.append(model.calculate_states(sess, transformer, phrases=batch))
     print(i+1, '/', len(batches),  end='\r')
 
-with open('./data/words_dictionary.txt', 'r', encoding='utf-8') as f:
-    dictionary = f.read().split('_')
+# dictionary = load_dictionary("./data/")
+
+dictionary = None
 
 g = tf.Graph()
 with g.as_default():
