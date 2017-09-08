@@ -2,6 +2,8 @@ import numpy as np
 import tensorflow as tf
 from libs.utils import load_model, filter_sequence, pad, top_best
 from libs.meaning_discrimination import sentence_similarity
+from nltk.tokenize import word_tokenize
+
 
 def build_sampler_env(load_dir, batch_size=64, enc_seq_len=64, dec_seq_len=201):
     enc_g = tf.Graph()
@@ -29,6 +31,8 @@ def sample(enc_model, enc_session, enc_graph, dec_model, dec_session, dec_graph,
         for i in range(max_iter):
             sequences = dec_model.loop_sample(dec_session, transformer, batch_states, softmax_t=softmax_t)
             for seq in sequences:
+                if isinstance(seq, list):
+                    seq = "".join(seq)
                 sampled += filter_sequence(seq, dictionary=dictionary)
             if len(sampled) >= n_items:
                 break
@@ -41,8 +45,10 @@ def wrap_list_with_score(phrases_list, value=1.):
     return [tuple((p, value)) for p in phrases_list]
 
 
-def probability(phrases_list, model, transformer):
+def probability(phrases_list, model, transformer, extract_words=False, pad_to_len=200):
     """Returns probability of each phrase under given discriminator"""
+    if extract_words:
+        phrases_list = [word_tokenize(p) for p in phrases_list]
 
     pad_idx = len(transformer.tokens)  # pad with new element
     X = np.array(
@@ -67,6 +73,14 @@ def update_probability(list_of_pp_tuples, probability_f, mode='prob', coef=1.0):
     else:
         out_list_of_pp_tuples = list(zip(phrases, np.multiply(probs, conditional_probs)))
     return out_list_of_pp_tuples
+
+
+def filter_phrases_by_words_count(phrases, min_count=3):
+    probabilities = np.zeros(len(phrases), dtype=np.float32)
+    for i, p in enumerate(phrases):
+        if len(p.split(" ")) >= min_count:
+            probabilities[i] = 1.
+    return probabilities
 
 
 def weighted_probabilities_sum(list_of_lists_of_pp_tuples, coefs='uniform'):

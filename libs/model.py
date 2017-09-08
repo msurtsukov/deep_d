@@ -207,7 +207,7 @@ class Model:
         out = [transformer.inverse_transform(np.squeeze(id_seq)) for id_seq in out]
         return out
 
-    def sample(self, sess, chars, vocab, num=200, prime='The ', sampling_type=1, stop_sym=None):
+    def sample(self, sess, chars, vocab, num=200, prime='У ', sampling_type=1, stop_sym=None):
         state = sess.run(self.cell.zero_state(self.batch_size, tf.float32))
         for char in prime[:-1]:
             x = np.zeros((self.batch_size, 1))

@@ -112,8 +112,12 @@ class TextLoader:
         self.pointer = 0
 
 
-def load_transformer(load_dir):
-    with open(os.path.join(load_dir, 'transformer.pkl'), 'rb') as f:
+def load_transformer(load_dir, file_name=None):
+    if not file_name:
+        file_name = os.path.join(load_dir, 'transformer.pkl')
+    else:
+        file_name = os.path.join(load_dir, file_name)
+    with open(file_name, 'rb') as f:
         transformer = cPickle.load(f)
     return transformer
 
@@ -274,11 +278,12 @@ def filter_sequence(seq, dictionary):
     selected = []
     for cand in candidates:
         cand = cand.strip()
-        words = w_pat.findall(cand)
         keep = True
-        for word in words:
-            if not dictionary.get(word, 0):
-                keep = False
+        if dictionary:
+            words = w_pat.findall(cand)
+            for word in words:
+                if not dictionary.get(word, 0):
+                    keep = False
         if keep:
             selected.append(cand)
     return selected
